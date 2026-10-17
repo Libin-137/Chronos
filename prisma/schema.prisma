@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model ClassGroup {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slots Slot[]
+}
+
+model Teacher {
+  id    Int    @id @default(autoincrement())
+  name  String
+  slots Slot[]
+}
+
+model Subject {
+  id    Int    @id @default(autoincrement())
+  name  String
+  code  String @unique
+  slots Slot[]
+}
+
+model Room {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  capacity Int?
+  slots    Slot[]
+}
+
+model Slot {
+  id           Int        @id @default(autoincrement())
+  day          Int
+  period       Int
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id])
+  classGroupId Int
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  subjectId    Int
+  teacher      Teacher    @relation(fields: [teacherId], references: [id])
+  teacherId    Int
+  room         Room       @relation(fields: [roomId], references: [id])
+  roomId       Int
+
+  @@unique([day, period, classGroupId])
+  @@unique([day, period, teacherId])
+  @@unique([day, period, roomId])
+}
