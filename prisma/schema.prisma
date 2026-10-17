@@ -7,46 +7,72 @@ datasource db {
   provider = "sqlite"
 }
 
-model ClassGroup {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  slots Slot[]
+model Timetable {
+  id            Int       @id @default(autoincrement())
+  name          String
+  days          String    @default("Mon,Tue,Wed,Thu,Fri")
+  periodsPerDay Int       @default(8)
+  createdAt     DateTime  @default(now())
+  sections      Section[]
+  teachers      Teacher[]
+  subjects      Subject[]
+  rooms         Room[]
+}
+
+model Section {
+  id          Int       @id @default(autoincrement())
+  name        String
+  timetable   Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  timetableId Int
+  slots       Slot[]
+
+  @@unique([timetableId, name])
 }
 
 model Teacher {
-  id    Int    @id @default(autoincrement())
-  name  String
-  slots Slot[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  timetable   Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  timetableId Int
+  slots       Slot[]
 }
 
 model Subject {
-  id    Int    @id @default(autoincrement())
-  name  String
-  code  String @unique
-  slots Slot[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  code        String
+  timetable   Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  timetableId Int
+  slots       Slot[]
+
+  @@unique([timetableId, code])
 }
 
 model Room {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  capacity Int?
-  slots    Slot[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  capacity    Int?
+  timetable   Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  timetableId Int
+  slots       Slot[]
+
+  @@unique([timetableId, name])
 }
 
 model Slot {
-  id           Int        @id @default(autoincrement())
-  day          Int
-  period       Int
-  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id])
-  classGroupId Int
-  subject      Subject    @relation(fields: [subjectId], references: [id])
-  subjectId    Int
-  teacher      Teacher    @relation(fields: [teacherId], references: [id])
-  teacherId    Int
-  room         Room       @relation(fields: [roomId], references: [id])
-  roomId       Int
+  id        Int     @id @default(autoincrement())
+  day       Int
+  period    Int
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId Int
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId Int
+  room      Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    Int
 
-  @@unique([day, period, classGroupId])
+  @@unique([day, period, sectionId])
   @@unique([day, period, teacherId])
   @@unique([day, period, roomId])
 }
