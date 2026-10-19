@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
+import ResourceForm from "./resource-form";
 
 function tab(active: boolean) {
   return `rounded border px-3 py-1 text-sm ${
@@ -18,7 +19,12 @@ export default async function Timetable({
 
   const timetables = await prisma.timetable.findMany({
     orderBy: { id: "asc" },
-    include: { sections: { orderBy: { id: "asc" } } },
+    include: {
+      sections: { orderBy: { id: "asc" } },
+      teachers: { orderBy: { name: "asc" } },
+      subjects: { orderBy: { name: "asc" } },
+      rooms: { orderBy: { name: "asc" } },
+    },
   });
 
   if (timetables.length === 0) {
@@ -41,6 +47,9 @@ export default async function Timetable({
   const find = (day: number, period: number) =>
     slots.find((x) => x.day === day && x.period === period);
 
+  const list = (items: { name: string }[]) =>
+    items.length ? items.map((i) => i.name).join(", ") : "none yet";
+
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-2">
@@ -61,6 +70,14 @@ export default async function Timetable({
             {x.name}
           </Link>
         ))}
+      </div>
+
+      <ResourceForm timetableId={tt.id} />
+
+      <div className="mb-6 space-y-1 text-sm opacity-80">
+        <p>Teachers: {list(tt.teachers)}</p>
+        <p>Subjects: {list(tt.subjects.map((x) => ({ name: `${x.name} (${x.code})` })))}</p>
+        <p>Rooms: {list(tt.rooms)}</p>
       </div>
 
       {!section ? (
